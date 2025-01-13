@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block main %}
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="mt-3 mb-3" style="color:white;">
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Kirish</button>
+    </div>
+
+</form>
+
+{% endblock main %}

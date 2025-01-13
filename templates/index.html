@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block main %}
+    {% for course in courses %}
+    <div class="card mt-4 mb-4">
+        <div class="card-body">
+            <a href="{% url 'tanlangan' course.id %}">
+                <h5 class="card-title">{{ course.name }}</h5>
+                <p class="card-text">{{ course.description|truncatewords:20 }}</p>
+            </a>
+        </div>
+        <div class="card-footer">
+            <small class="text-muted">{{ course.updated_at|date:"D d F Y" }}</small>
+        </div>
+    </div>
+    {% endfor %}
+{% endblock main%}
