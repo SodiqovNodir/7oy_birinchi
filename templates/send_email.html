@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<form method="post">
+    {% csrf_token %}
+    {{ email.as_p }}
+    <button type="submit" class="btn btn-success">Yuborish</button>
+
+</form>
+
+
+{% endblock main %}

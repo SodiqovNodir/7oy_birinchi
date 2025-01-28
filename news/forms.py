@@ -1,26 +1,58 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
-from news.models import Course, Student
+
+from news.models import Course, Student, MyUser
 
 
-class CourseForm(forms.Form):
-    name = forms.CharField(max_length=50, widget=forms.TextInput())
-    description = forms.CharField(widget=forms.Textarea())
-    created_at = forms.DateTimeField(widget=forms.DateTimeInput())
-    updated_at = forms.DateTimeField(widget=forms.DateTimeInput())
+class CourseForm(forms.ModelForm):
 
-class StudentForm(forms.Form):
-    name = forms.CharField(widget=forms.TextInput())
-    email = forms.EmailField(widget=forms.EmailInput())
-    enrolled_at = forms.DateTimeField(widget=forms.DateTimeInput())
-    course = forms.ModelChoiceField(queryset=Course.objects.all(), widget=forms.Select())
+    class Meta:
+        model = Course
+        exclude = ['updated_at']
 
-class RegisterForm(forms.Form):
-    username = forms.CharField(max_length=50, widget=forms.TextInput())
-    email = forms.EmailField(widget=forms.EmailInput())
-    password = forms.CharField(min_length=8, widget=forms.PasswordInput())
-    password_repeat = forms.CharField(min_length=8, widget=forms.PasswordInput())
+class StudentForm(forms.ModelForm):
 
-class LoginForm(forms.Form):
-    username = forms.CharField(max_length=50, widget=forms.TextInput())
-    password = forms.CharField(min_length=8, widget=forms.PasswordInput())
+    class Meta:
+        model = Student
+        fields = '__all__'
+
+class RegisterForm(UserCreationForm):
+    class Meta:
+        model = MyUser
+        fields = ['username', 'email']
+        labels = {
+            'username': "Foydalanuvchi nomini kiriting",
+            'email': "Elektron pochta manzilingizni kiriting",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['username'].widget.attrs.update({'class': "form-control form-control-lg"})
+        self.fields['email'].widget.attrs.update({'class': "form-control form-control-lg"})
+        self.fields['password'].widget.attrs.update({'class': "form-control form-control-lg"})
+        self.fields['password_repeat'].widget.attrs.update({'class': "form-control form-control-lg"})
+
+class LoginForm(AuthenticationForm):
+    class Meta:
+        model = MyUser
+        fields = ['username', 'password']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        username = self.fields['username']
+        password = self.fields['password']
+
+        username.label = "Foydalanuvchi nomi kiriting"
+        username.widget.attrs.update({'class': "form-control form-control-lg"})
+        password.widget.attrs.update({'class': "form-control form-control-lg"})
+
+class EmailForm(forms.Form):
+    subject = forms.CharField(max_length=250, widget=forms.Textarea(attrs={
+        'class': "form-control"
+    }))
+    message = forms.CharField(widget=forms.Textarea(attrs={
+        'class':"form-control"
+    }))

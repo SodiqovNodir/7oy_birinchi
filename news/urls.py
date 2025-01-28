@@ -1,10 +1,13 @@
 from django.urls import path
 
-from news.views import asosiy, tanlangan, add_course, add_student, register, login_user, logout_user, update_course
+from news.views import (asosiy, tanlangan, add_course,
+                        add_student, register, login_user,
+                        logout_user, update_course, send_message_to_email)
 
 urlpatterns = [
     path('', asosiy, name = 'asosiy'),
     path('course/<int:course_id>/', tanlangan, name='tanlangan'),
+    path('send-message/', send_message_to_email, name = 'send_messages'),
 
     path('auth/register/', register, name = 'register'),
     path('auth/login/', login_user, name = 'login_user'),

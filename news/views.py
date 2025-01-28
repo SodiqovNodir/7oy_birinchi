@@ -3,16 +3,21 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
+from django.core.mail import send_mail
+from django.core.paginator import Paginator
 
-
-from news.forms import CourseForm, StudentForm, RegisterForm, LoginForm
-from news.models import Course, Student
+from news.forms import CourseForm, StudentForm, RegisterForm, LoginForm, EmailForm
+from news.models import Course, Student, MyUser
 
 
 def asosiy(request):
     courses = Course.objects.all()
+    paginator = Paginator(courses, 2)
+
+    page = request.GET.get('page', 1)
+
     contexts = {
-        'courses':courses,
+        'courses':paginator.page(page),
     }
     return render(request, 'index.html', context = contexts)
 
@@ -30,8 +35,9 @@ def add_course(request: WSGIRequest):
     if request.method == 'POST':
         course = CourseForm(data=request.POST, files=request.FILES)
         if course.is_valid():
-            Course.objects.create(**course.cleaned_data)
-        return redirect('asosiy')
+            courrse = course.save()
+            messages.success(request, "Course muvofaqyatli o'rnatildi.")
+            return redirect('tanlangan', course_id = courrse.pk)
     courses = CourseForm()
     contexts = {
         'courses' : courses,
@@ -43,9 +49,9 @@ def add_student(request: WSGIRequest):
     if request.method == 'POST':
         student = StudentForm(data=request.POST, files=request.FILES)
         if student.is_valid():
-            stud = Student.objects.create(**student.cleaned_data)
-            course_id = stud.course_id
-        return redirect('tanlangan', course_id = course_id)
+            stud = student.save()
+            messages.success(request, "Student muvofaqiyatli o'rnatildi")
+            return redirect('tanlangan', course_id = stud.pk)
     students = StudentForm()
     contexts = {
         'students' : students,
@@ -56,20 +62,12 @@ def update_course(request: WSGIRequest, course_id):
     course = get_object_or_404(Course, pk=course_id)
 
     if request.method == 'POST':
-        form = CourseForm(data=request.POST, files=request.FILES)
+        form = CourseForm(data=request.POST, files=request.FILES, instance=course)
         if form.is_valid():
-            course.name = form.cleaned_data.get('name')
-            course.description = form.cleaned_data.get('description')
-            course.created_at = form.cleaned_data.get('created_at')
-            course.updated_at = form.cleaned_data.get('updated_at')
             course.save()
         return redirect('tanlangan', course_id = course_id)
-    courses = CourseForm(initial={
-        'name': course.name,
-        'description': course.description,
-        'created': course.created_at,
-        'updated': course.updated_at,
-    })
+
+    courses = CourseForm(instance=course)
 
     contexts = {
         'courses': courses,
@@ -113,4 +111,28 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     return redirect('login_user')
+
+def send_message_to_email(request):
+    if request.method == 'POST':
+        email = EmailForm(data=request.POST)
+        if email.is_valid():
+            subject = email.cleaned_data.get('subject')
+            message = email.cleaned_data.get('message')
+            users = MyUser.objects.all()
+            for user in users:
+                send_mail(subject,
+                          message,
+                          "sodiqovnodirbek14@gmail.com",
+                          [user.email],
+                          fail_silently=False)
+
+            messages.success(request, 'Xabar yuborildi😍')
+            return redirect('asosiy')
+
+    else:
+        email = EmailForm()
+    context = {
+        'email':email
+    }
+    return render(request, 'send_email.html', context)
 
